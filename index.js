@@ -61,5 +61,14 @@ port.on('data', function (data) {
 });
 
 app.get('/', function (req, res) {
-	res.send(date + ': ' + ppm + ' ppm');
+	var s = '<!DOCTYPE html>' +
+		'<html><head><title>Carbon dioxide sensor</title><style>' +
+		'body { font-family: sans-serif; } ' +
+		'table, th, td { border: 1px solid black; border-collapse: collapse; } ' +
+		'th, td { padding: 10px; }' +
+		'</style></head><body>' +
+		'<table><tr><th>Date</th><th>CO<sub>2</sub> (ppm)</th></tr>' +
+		'<tr><td>' + date + '</td><td>' + ppm + '</td></tr></table>' +
+		'</body></html>';
+	res.send(s);
 });
