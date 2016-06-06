@@ -1,5 +1,8 @@
 #! /usr/bin/env node
 
+var express = require('express');
+var app = express();
+
 var SerialPort = require("serialport").SerialPort;
 
 function checksum(data) {
@@ -32,7 +35,7 @@ function parser() {
 	};
 }
 
-var port = new SerialPort("/dev/ttyUSB1", {
+var port = new SerialPort("/dev/ttyUSB0", {
 	baudRate: 9600,
 	parser: parser()
 });
@@ -44,9 +47,19 @@ function read() {
 port.once('open', function () {
 	read();
 	setInterval(read, 30000);
+	app.listen(3000, function () {
+		console.log('Sensor app listening on port 3000!');
+	});
 });
 
+var date, ppm;
+
 port.on('data', function (data) {
-	var value = data[2] << 8 | data[3];
-	console.log(new Date() + ': ' + value);
+	date = new Date();
+	ppm = data[2] << 8 | data[3];
+	console.log(date + ': ' + ppm);
+});
+
+app.get('/', function (req, res) {
+	res.send(date + ': ' + ppm + ' ppm');
 });
