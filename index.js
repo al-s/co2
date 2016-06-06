@@ -1,5 +1,7 @@
 #! /usr/bin/env node
 
+var _ = require('lodash');
+
 var express = require('express');
 var app = express();
 
@@ -52,15 +54,21 @@ port.once('open', function () {
 	});
 });
 
-var date, ppm;
+var values = [];
 
 port.on('data', function (data) {
-	date = new Date();
-	ppm = data[2] << 8 | data[3];
+	var date = new Date();
+	var ppm = data[2] << 8 | data[3];
 	console.log(date + ': ' + ppm);
+	values.push({ date: date, ppm: ppm });
+	if (values.length > 120) values.shift();
 });
 
 app.get('/', function (req, res) {
+	var rows = _.reduceRight(values, function (r, v) {
+		r.push('<tr><td>' + v.date + '</td><td>' + v.ppm + '</td></tr>');
+		return r;
+	}, []).join('');
 	var s = '<!DOCTYPE html>' +
 		'<html><head><title>Carbon dioxide sensor</title><style>' +
 		'body { font-family: sans-serif; } ' +
@@ -68,7 +76,7 @@ app.get('/', function (req, res) {
 		'th, td { padding: 10px; }' +
 		'</style></head><body>' +
 		'<table><tr><th>Date</th><th>CO<sub>2</sub> (ppm)</th></tr>' +
-		'<tr><td>' + date + '</td><td>' + ppm + '</td></tr></table>' +
+		rows + '</table>' +
 		'</body></html>';
 	res.send(s);
 });
